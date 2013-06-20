@@ -27,8 +27,13 @@ public class Tests extends TestCase {
     Place berlin = new Place(52.519171, 13.406092);
     Place munich = new Place(48.1671, 11.6094);
     
+    Place stuttgart = new Place(48.77541773021221, 9.181758686900139);
+    Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
+    
     public void testSearchRides() {
-        connector.getRides(munich, berlin, new Date(), null);
+//        connector.getRides(munich, berlin, new Date(), null);
+        connector.getRides(stuttgart, berlin,
+                new Date(System.currentTimeMillis() + 24*3600000), null);
         connector.printResults();
     }
     
