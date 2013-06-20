@@ -16,6 +16,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,15 +28,19 @@ import org.teleportr.Ride;
 
 public class FahrgemeinschaftConnector extends Connector {
 
+    private String startDate;
+
     private static final String APIKEY = 
             "88071e8ebe7c755923b2b2027c36605d6b821d7" +
             "b173a314fc59b11776a489e09313c5883b8e6700124" +
             "d0e10274ab11336450dd40afb661e09a900df3da05264c";
-    static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm");
-    static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+    static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
+    static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
 
     @Override
-    public void getRides(Place from, Place to, Date dep, Date arr) {
+    public long getRides(Place from, Place to, Date dep, Date arr) {
+        
+        startDate = df.format(dep);
 
         JSONObject from_json = new JSONObject();
         JSONObject to_json = new JSONObject();
@@ -44,11 +49,12 @@ public class FahrgemeinschaftConnector extends Connector {
             from_json.put("Latitude", "" + from.getLat());
             from_json.put("Startdate", df.format(dep));
             from_json.put("Reoccur", JSONObject.NULL);
+            from_json.put("ToleranceRadius", getSetting("radius_from"));
             // place.put("Starttime", JSONObject.NULL);
 
             to_json.put("Longitude", "" + to.getLng());
             to_json.put("Latitude", "" + to.getLat());
-            // place.put("ToleranceRadius", "25");
+            to_json.put("ToleranceRadius", getSetting("radius_to"));
             // place.put("ToleranceDays", "3");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -56,26 +62,35 @@ public class FahrgemeinschaftConnector extends Connector {
 
         JSONObject json = loadJson("http://service.fahrgemeinschaft.de/trip?"
                 + "searchOrigin=" + from_json + "&searchDestination=" + to_json);
-        if (json == null) return;
-
-        try {
-            JSONArray results = json.getJSONArray("results");
-            System.out.println("FOUND " + results.length() + " rides");
-
-            for (int i = 0; i < results.length(); i++) {
-                store(parseRide(results.getJSONObject(i)));
+        if (json != null) {
+            try {
+                JSONArray results = json.getJSONArray("results");
+                System.out.println("FOUND " + results.length() + " rides");
+                
+                for (int i = 0; i < results.length(); i++) {
+                    store(parseRide(results.getJSONObject(i)));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
+        return dep.getTime() + 24 * 3600 * 1000;
     }
 
     private Ride parseRide(JSONObject json)  throws JSONException {
-        String who = "mail=" + json.getString("Contactmail");
-        who += "; mobile=" + json.getString("Contactmobile");
-        who += "; landline=" + json.getString("Contactlandline");
+        StringBuffer who = new StringBuffer();
+        JSONObject p = json.getJSONObject("Privacy");
+        String value = json.getString("Contactmail");
+        if (!value.equals("") && !value.equals("null"))
+            who.append(";mail=").append(p.getInt("Email")).append(value);
+        value = json.getString("Contactmobile");
+        if (!value.equals(""))
+            who.append(";mobile=").append(p.getInt("Mobile")).append(value);
+        value = json.getString("Contactlandline");
+        if (!value.equals(""))
+            who.append(";landline=").append(p.getInt("Landline")).append(value);
 
-        Ride ride = new Ride().type(Ride.OFFER).who(who);
+        Ride ride = new Ride().type(Ride.OFFER).who(who.toString());
         ride.details(json.getString("Description"));
         ride.ref(json.getString("TripID"));
         ride.seats(json.getLong("Places"));
@@ -124,7 +139,7 @@ public class FahrgemeinschaftConnector extends Connector {
         } else {
             System.out.println("no start time!");
         }
-        departure = df.format(new Date()) + departure;
+        departure = startDate + departure;
         try {
             return fulldf.parse(departure);
         } catch (ParseException e) {
