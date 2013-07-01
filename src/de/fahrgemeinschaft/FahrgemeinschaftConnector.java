@@ -8,11 +8,14 @@
 package de.fahrgemeinschaft;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 
@@ -43,9 +46,8 @@ public class FahrgemeinschaftConnector extends Connector {
                     + "\"}").getBytes());
             post.getOutputStream().close();
             JSONObject json = loadJson(post);
-            return json.getJSONObject("user")
-                    .getJSONArray("KeyValuePairs")
-                    .getJSONObject(0).getString("Value");
+//            json.getJSONObject("user").getJSONArray("KeyValuePairs")
+            return json.getJSONObject("auth").getString("AuthKey");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -178,9 +180,43 @@ public class FahrgemeinschaftConnector extends Connector {
     }
 
     @Override
-    public int publish(Ride offer) {
-        // TODO Auto-generated method stub
+    public int publish(Ride offer) throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("Triptype", "offer");
+        json.put("IDuser", getSetting("user"));
+        ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
+        routings.add(routing(offer.getFrom(), offer.getTo()));
+        for (Ride sub : offer.getSubrides()) {
+            routing(offer.getFrom(), sub.getTo());
+        }
+        json.put("routings", new JSONArray(routings));
+        System.out.println(json);
+        HttpURLConnection post = (HttpURLConnection)
+                new URL(endpoint + "/trip").openConnection();
+        post.setRequestProperty("authkey", getAuth());
+        post.setRequestProperty("apikey", APIKEY);
+        post.setDoOutput(true);
+        OutputStreamWriter out = new OutputStreamWriter(post.getOutputStream());
+        out.write(json.toString());
+        JSONObject response = loadJson(post);
+        System.out.println(response);
+
         return 0;
+    }
+
+    private JSONObject routing(Place from, Place to) throws JSONException {
+        JSONObject route = new JSONObject();
+        route.put("Origin", place(from));
+        route.put("Destination", place(to));
+        return route;
+    }
+
+    private JSONObject place(Place from) throws JSONException {
+        JSONObject place = new JSONObject();
+        place.put("Latitude", from.getLat());
+        place.put("Longitude", from.getLng());
+        place.put("Address", from.getAddress());
+        return place;
     }
 }
 
