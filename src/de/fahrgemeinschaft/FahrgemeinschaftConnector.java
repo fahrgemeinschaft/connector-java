@@ -1,15 +1,13 @@
 /**
  * Fahrgemeinschaft / Ridesharing App
  * Copyright (c) 2013 by it's authors.
- * Some rights reserved. See LICENSE.. 
+ * Some rights reserved. See LICENSE..
  *
  */
 
 package de.fahrgemeinschaft;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,12 +28,40 @@ public class FahrgemeinschaftConnector extends Connector {
 
     private String startDate;
 
-    private static final String APIKEY = 
+    public String endpoint =  "http://service.fahrgemeinschaft.de";
+
+    static final String APIKEY =
             "88071e8ebe7c755923b2b2027c36605d6b821d7" +
             "b173a314fc59b11776a489e09313c5883b8e6700124" +
             "d0e10274ab11336450dd40afb661e09a900df3da05264c";
     static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
     static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
+
+    @Override
+    public String authenticate() {
+        try {
+            HttpURLConnection post = (HttpURLConnection)
+                    new URL(endpoint + "/session").openConnection();
+            post.setRequestProperty("apikey", APIKEY);
+            post.setDoOutput(true);
+            post.getOutputStream().write((
+                    "{\"Email\": \"" + getSetting("username")
+                    + "\", \"Password\": \"" + getSetting("password")
+                    + "\"}").getBytes());
+            post.getOutputStream().close();
+            JSONObject json = loadJson(post);
+            return json.getJSONObject("user")
+                    .getJSONArray("KeyValuePairs")
+                    .getJSONObject(0).getString("Value");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @Override
     public long getRides(Place from, Place to, Date dep, Date arr) {
@@ -60,19 +86,28 @@ public class FahrgemeinschaftConnector extends Connector {
             e.printStackTrace();
         }
 
-        JSONObject json = loadJson("http://service.fahrgemeinschaft.de/trip?"
-                + "searchOrigin=" + from_json + "&searchDestination=" + to_json);
-        if (json != null) {
-            try {
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URL(endpoint
+                             + "/trip?searchOrigin=" + from_json
+                            + "&searchDestination=" + to_json).openConnection();
+            conn.setRequestProperty("apikey", APIKEY);
+            JSONObject json = loadJson(conn);
+            if (json != null) {
                 JSONArray results = json.getJSONArray("results");
                 System.out.println("FOUND " + results.length() + " rides");
-                
+
                 for (int i = 0; i < results.length(); i++) {
                     store(parseRide(results.getJSONObject(i)));
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return dep.getTime() + 24 * 3600 * 1000;
     }
@@ -148,36 +183,6 @@ public class FahrgemeinschaftConnector extends Connector {
             return new Date(0);
         }
     }
-
-    JSONObject loadJson(String url) {
-        System.out.println(url);
-        HttpURLConnection conn = null;
-        StringBuilder result = new StringBuilder();
-        try {
-            conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestProperty("apikey", APIKEY);
-            InputStreamReader in = new InputStreamReader(
-                    new BufferedInputStream(conn.getInputStream()));
-            int read;
-            char[] buff = new char[1024];
-            while ((read = in.read(buff)) != -1) {
-                result.append(buff, 0, read);
-            }
-            return new JSONObject(result.toString());
-        } catch (JSONException e) {
-            System.out.println("json error");
-        } catch (MalformedURLException e) {
-            System.out.println("url error ");
-        } catch (IOException e) {
-            System.out.println("io error");
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-        return null;
-    }
-
 }
 
 // "Triptype": "offer",
