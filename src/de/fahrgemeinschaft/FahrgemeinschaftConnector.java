@@ -15,7 +15,6 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 
@@ -41,13 +40,14 @@ public class FahrgemeinschaftConnector extends Connector {
             post.setRequestProperty("apikey", APIKEY);
             post.setDoOutput(true);
             post.getOutputStream().write((
-                    "{\"Email\": \"" + getSetting("username")
-                    + "\", \"Password\": \"" + getSetting("password")
+                    "{\"Email\": \"" + get("username")
+                    + "\", \"Password\": \"" + get("password")
                     + "\"}").getBytes());
             post.getOutputStream().close();
             JSONObject json = loadJson(post);
-//            json.getJSONObject("user").getJSONArray("KeyValuePairs")
-            return json.getJSONObject("auth").getString("AuthKey");
+            JSONObject auth = json.getJSONObject("auth");
+            set("user", auth.getString("IDuser"));
+            return auth.getString("AuthKey");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -70,12 +70,12 @@ public class FahrgemeinschaftConnector extends Connector {
             from_json.put("Latitude", "" + from.getLat());
             from_json.put("Startdate", df.format(dep));
             from_json.put("Reoccur", JSONObject.NULL);
-            from_json.put("ToleranceRadius", getSetting("radius_from"));
+            from_json.put("ToleranceRadius", get("radius_from"));
             // place.put("Starttime", JSONObject.NULL);
 
             to_json.put("Longitude", "" + to.getLng());
             to_json.put("Latitude", "" + to.getLat());
-            to_json.put("ToleranceRadius", getSetting("radius_to"));
+            to_json.put("ToleranceRadius", get("radius_to"));
             // place.put("ToleranceDays", "3");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -183,13 +183,13 @@ public class FahrgemeinschaftConnector extends Connector {
     public int publish(Ride offer) throws Exception {
         JSONObject json = new JSONObject();
         json.put("Triptype", "offer");
-        json.put("IDuser", getSetting("user"));
+        json.put("IDuser", get("user"));
         ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
         routings.add(routing(offer.getFrom(), offer.getTo()));
         for (Ride sub : offer.getSubrides()) {
             routing(offer.getFrom(), sub.getTo());
         }
-        json.put("routings", new JSONArray(routings));
+        json.put("Routings", new JSONArray(routings));
         System.out.println(json);
         HttpURLConnection post = (HttpURLConnection)
                 new URL(endpoint + "/trip").openConnection();
