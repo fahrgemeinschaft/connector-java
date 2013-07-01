@@ -7,6 +7,7 @@
 
 package de.fahrgemeinschaft;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -32,14 +33,15 @@ public class Tests extends TestCase {
     }
 
     public void testAuth() {
-        connector.authenticate();
-        assertNotNull("there should be some token", connector.getAuth());
+        String auth = connector.getAuth();
+        System.out.println(auth);
+        assertNotNull(auth);
     }
 
-    Place berlin = new Place(52.519171, 13.406092);
-    Place munich = new Place(48.1671, 11.6094);
+    Place berlin = new Place(52.519171, 13.406092).address("Berlin");
+    Place munich = new Place(48.1671, 11.6094).address("München");
     
-    Place stuttgart = new Place(48.77541773021221, 9.181758686900139);
+    Place stuttgart = new Place(48.775417, 9.181758).address("Stuttgart");
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
     public void testSearchRides() {
@@ -49,8 +51,14 @@ public class Tests extends TestCase {
         connector.printResults();
     }
     
-    public void testPublishRide() {
+    public void testPublishRide() throws Exception {
         connector.publish(new Ride().from(stuttgart).to(berlin));
-        // got to test.fahrgemeinschaft and assert published
+        // go to test.fahrgemeinschaft and assert published
+    }
+
+    public void testPublishSubRides() throws Exception {
+        Ride offer = new Ride().from(stuttgart).via(munich).to(berlin);
+        connector.publish(offer);
+        // go to test.fahrgemeinschaft and assert published
     }
 }
