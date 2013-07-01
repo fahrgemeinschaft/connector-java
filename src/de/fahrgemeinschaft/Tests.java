@@ -13,6 +13,7 @@ import java.util.HashMap;
 import junit.framework.TestCase;
 
 import org.teleportr.Place;
+import org.teleportr.Ride;
 
 public class Tests extends TestCase {
 
@@ -43,9 +44,13 @@ public class Tests extends TestCase {
     
     public void testSearchRides() {
 //        connector.getRides(munich, berlin, new Date(), null);
-        connector.getRides(stuttgart, berlin,
+        connector.search(stuttgart, berlin,
                 new Date(System.currentTimeMillis() + 24*3600000), null);
         connector.printResults();
     }
     
+    public void testPublishRide() {
+        connector.publish(new Ride().from(stuttgart).to(berlin));
+        // got to test.fahrgemeinschaft and assert published
+    }
 }
