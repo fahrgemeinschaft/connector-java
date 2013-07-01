@@ -90,37 +90,46 @@ public class FahrgemeinschaftConnector extends Connector {
             e.printStackTrace();
         }
 
-        JSONObject json = loadJson("http://service.fahrgemeinschaft.de/trip?"
-                + "searchOrigin=" + from_json + "&searchDestination=" + to_json);
-        if (json != null) {
-            try {
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URL(endpoint
+                             + "/trip?searchOrigin=" + from_json
+                            + "&searchDestination=" + to_json).openConnection();
+            conn.setRequestProperty("apikey", APIKEY);
+            JSONObject json = loadJson(conn);
+            if (json != null) {
                 JSONArray results = json.getJSONArray("results");
                 System.out.println("FOUND " + results.length() + " rides");
-                
+
                 for (int i = 0; i < results.length(); i++) {
                     store(parseRide(results.getJSONObject(i)));
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return dep.getTime() + 24 * 3600 * 1000;
     }
 
     private Ride parseRide(JSONObject json)  throws JSONException {
-        StringBuffer who = new StringBuffer();
+
+        Ride ride = new Ride().type(Ride.OFFER);
+        ride.who(json.getString("IDuser"));
         JSONObject p = json.getJSONObject("Privacy");
         String value = json.getString("Contactmail");
         if (!value.equals("") && !value.equals("null"))
-            who.append(";mail=").append(p.getInt("Email")).append(value);
+            ride.set("mail", p.getInt("Email") + value);
         value = json.getString("Contactmobile");
-        if (!value.equals(""))
-            who.append(";mobile=").append(p.getInt("Mobile")).append(value);
+        if (!value.equals("") && !value.equals("null"))
+            ride.set("mobile", p.getInt("Mobile") + value);
         value = json.getString("Contactlandline");
-        if (!value.equals(""))
-            who.append(";landline=").append(p.getInt("Landline")).append(value);
-
-        Ride ride = new Ride().type(Ride.OFFER).who(who.toString());
+        if (!value.equals("") && !value.equals("null"))
+            ride.set("landline", p.getInt("Landline") + value);
         ride.details(json.getString("Description"));
         ride.ref(json.getString("TripID"));
         ride.seats(json.getLong("Places"));
@@ -178,36 +187,6 @@ public class FahrgemeinschaftConnector extends Connector {
             return new Date(0);
         }
     }
-
-    JSONObject loadJson(String url) {
-        System.out.println(url);
-        HttpURLConnection conn = null;
-        StringBuilder result = new StringBuilder();
-        try {
-            conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestProperty("apikey", APIKEY);
-            InputStreamReader in = new InputStreamReader(
-                    new BufferedInputStream(conn.getInputStream()));
-            int read;
-            char[] buff = new char[1024];
-            while ((read = in.read(buff)) != -1) {
-                result.append(buff, 0, read);
-            }
-            return new JSONObject(result.toString());
-        } catch (JSONException e) {
-            System.out.println("json error");
-        } catch (MalformedURLException e) {
-            System.out.println("url error ");
-        } catch (IOException e) {
-            System.out.println("io error");
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-        return null;
-    }
-
 }
 
 // "Triptype": "offer",
