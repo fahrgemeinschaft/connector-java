@@ -8,6 +8,8 @@
 package de.fahrgemeinschaft;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.teleportr.Connector;
 import org.teleportr.Place;
@@ -16,12 +18,23 @@ import junit.framework.TestCase;
 
 public class Tests extends TestCase {
 
-    private Connector connector;
+    private FahrgemeinschaftConnector connector;
 
     @Override
     protected void setUp() throws Exception {
         connector = new FahrgemeinschaftConnector();
+        connector.prefs = new HashMap<String, String>();
+        connector.prefs.put("radius_from", "15");
+        connector.prefs.put("radius_to", "25");
+        connector.prefs.put("username", "blablamail@gmx.net");
+        connector.prefs.put("password", "blabla");
+        connector.endpoint =  "http://test.service.fahrgemeinschaft.de";
         super.setUp();
+    }
+
+    public void testAuth() {
+        connector.authenticate();
+        assertNotNull("there should be some token", connector.getAuth());
     }
 
     Place berlin = new Place(52.519171, 13.406092);
