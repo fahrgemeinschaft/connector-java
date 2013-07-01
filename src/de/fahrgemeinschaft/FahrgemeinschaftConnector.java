@@ -64,7 +64,7 @@ public class FahrgemeinschaftConnector extends Connector {
     }
 
     @Override
-    public long getRides(Place from, Place to, Date dep, Date arr) {
+    public long search(Place from, Place to, Date dep, Date arr) {
         
         startDate = df.format(dep);
 
@@ -182,6 +182,12 @@ public class FahrgemeinschaftConnector extends Connector {
             e.printStackTrace();
             return new Date(0);
         }
+    }
+
+    @Override
+    public int publish(Ride offer) {
+        // TODO Auto-generated method stub
+        return 0;
     }
 }
 
