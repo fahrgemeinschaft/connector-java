@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,6 +32,40 @@ public class FahrgemeinschaftConnector extends Connector {
     private static final String APIKEY = "<API-KEY>"; 
     static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm");
     static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+
+    @Override
+    public String authenticate() {
+        try {
+            HttpURLConnection post = (HttpURLConnection)
+                    new URL(endpoint + "/session").openConnection();
+            post.setRequestProperty("apikey", APIKEY);
+            post.setDoOutput(true);
+            System.out.println("{\"Email\": \"" + getSetting("username")
+                    + "\", \"Password\": \"" + getSetting("password")
+                    + "\"}");
+            post.getOutputStream().write((
+                    "{\"Email\": \"" + getSetting("username")
+                    + "\", \"Password\": \"" + getSetting("password")
+                    + "\"}").getBytes());
+            post.getOutputStream().close();
+            JSONObject json = loadJson(post);
+            String auth = json.getJSONObject("user")
+                    .getJSONArray("KeyValuePairs")
+                    .getJSONObject(0).getString("Value");
+            System.out.println(auth);
+            return auth;
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @Override
     public long getRides(Place from, Place to, Date dep, Date arr) {
