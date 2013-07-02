@@ -26,6 +26,7 @@ import org.teleportr.Place;
 import org.teleportr.Ride;
 
 
+
 public class FahrgemeinschaftConnector extends Connector {
 
     private String startDate;
@@ -36,33 +37,26 @@ public class FahrgemeinschaftConnector extends Connector {
             "88071e8ebe7c755923b2b2027c36605d6b821d7" +
             "b173a314fc59b11776a489e09313c5883b8e6700124" +
             "d0e10274ab11336450dd40afb661e09a900df3da05264c";
-    static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
-    static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
+    static final SimpleDateFormat fulldf =
+            new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
+    static final SimpleDateFormat df =
+            new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
 
     @Override
-    public String authenticate() {
-        try {
-            HttpURLConnection post = (HttpURLConnection)
-                    new URL(endpoint + "/session").openConnection();
-            post.setRequestProperty("apikey", APIKEY);
-            post.setDoOutput(true);
-            post.getOutputStream().write((
-                    "{\"Email\": \"" + get("username")
-                    + "\", \"Password\": \"" + get("password")
-                    + "\"}").getBytes());
-            post.getOutputStream().close();
-            JSONObject json = loadJson(post);
-            JSONObject auth = json.getJSONObject("auth");
-            set("user", auth.getString("IDuser"));
-            return auth.getString("AuthKey");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String authenticate() throws Exception {
+        HttpURLConnection post = (HttpURLConnection)
+                new URL(endpoint + "/session").openConnection();
+        post.setRequestProperty("apikey", APIKEY);
+        post.setDoOutput(true);
+        post.getOutputStream().write((
+                "{\"Email\": \"" + get("username")
+                + "\", \"Password\": \"" + get("password")
+                + "\"}").getBytes());
+        post.getOutputStream().close();
+        JSONObject json = loadJson(post);
+        JSONObject auth = json.getJSONObject("auth");
+        set("user", auth.getString("IDuser"));
+        return auth.getString("AuthKey");
     }
 
     @Override
@@ -167,18 +161,19 @@ public class FahrgemeinschaftConnector extends Connector {
 
     private Date parseTimestamp(JSONObject json) throws JSONException {
 //              new Date(Long.parseLong(ride.getString("Enterdate"));
-        String departure = "0000";
+        String departure = null;
         if (!json.isNull("Starttime")) {
             departure = json.getString("Starttime");
             if (departure.length() == 3)
                 departure = "0" + departure;
 //            departure = json.getString("Startdate") + departure;
-        } else {
-            System.out.println("no start time!");
         }
-        departure = startDate + departure;
+        if (departure.length() != 4) {
+            System.out.println("no start time!");
+            departure = "0000";
+        }
         try {
-            return fulldf.parse(departure);
+            return fulldf.parse(startDate + departure);
         } catch (ParseException e) {
             System.out.println("date/time parse error!");
             e.printStackTrace();
@@ -197,6 +192,8 @@ public class FahrgemeinschaftConnector extends Connector {
             routing(offer.getFrom(), sub.getTo());
         }
         json.put("Routings", new JSONArray(routings));
+        json.put("Reoccur", new JSONArray());
+        json.put("Privacy", new JSONArray());
         System.out.println(json);
         HttpURLConnection post = (HttpURLConnection)
                 new URL(endpoint + "/trip").openConnection();
@@ -223,6 +220,8 @@ public class FahrgemeinschaftConnector extends Connector {
         place.put("Latitude", from.getLat());
         place.put("Longitude", from.getLng());
         place.put("Address", from.getAddress());
+        place.put("CountryName", "Deutschland");
+        place.put("CountryCode", "DE");
         return place;
     }
 }

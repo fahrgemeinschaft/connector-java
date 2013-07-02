@@ -39,13 +39,15 @@ public class Tests extends TestCase {
 
     Place berlin = new Place(52.519171, 13.406092).address("Berlin");
     Place munich = new Place(48.1671, 11.6094).address("München");
+    Place leipzig = new Place("u30u1d1g3sc").address("Leipzig");
+    Place nürnberg = new Place("u0zck43yfyx").address("Nürnberg");
     
     Place stuttgart = new Place(48.775417, 9.181758).address("Stuttgart");
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
     public void testSearchRides() {
 //        connector.getRides(munich, berlin, new Date(), null);
-        con.search(stuttgart, berlin,
+        con.search(leipzig, berlin,
                 new Date(System.currentTimeMillis() + 24*3600000), null);
         con.printResults();
     }
