@@ -221,6 +221,8 @@ public class FahrgemeinschaftConnector extends Connector {
         System.out.println(json);
         OutputStreamWriter out = new OutputStreamWriter(post.getOutputStream());
         out.write(json.toString());
+        out.flush();
+        out.close();
         JSONObject response = loadJson(post);
         System.out.println(response);
 
