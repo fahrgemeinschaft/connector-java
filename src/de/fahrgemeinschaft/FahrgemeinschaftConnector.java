@@ -219,12 +219,19 @@ public class FahrgemeinschaftConnector extends Connector {
                 + "\"Friday\": false,"
                 + "\"Sunday\": false }"));
         json.put("Description", "foo bar");
-        List<Place> stops = offer.getPlaces();
         ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
-        for (int dest = stops.size()-1; dest >= 0 ; dest--)
-            for (int orig = 0; orig < dest; orig++)
-                routings.add(routing(orig==0? 0:-dest,
-                        stops.get(orig), stops.get(dest)));
+        List<Place> stops = offer.getPlaces();
+        int max = stops.size() - 1;
+        for (int dest = max; dest >= 0 ; dest--) {
+            for (int orig = 0; orig < dest; orig++) {
+                int idx = (orig == 0? (dest == max? 0 : dest) : - dest);
+                JSONObject route = new JSONObject();
+                route.put("RoutingIndex", idx);
+                route.put("Origin", place(stops.get(orig)));
+                route.put("Destination", place(stops.get(dest)));
+                routings.add(route);
+            }
+        }
         json.put("Routings", new JSONArray(routings));
         System.out.println(json);
         OutputStreamWriter out = new OutputStreamWriter(post.getOutputStream());
@@ -235,15 +242,6 @@ public class FahrgemeinschaftConnector extends Connector {
         System.out.println(response.getString("tripID"));
 
         return 0;
-    }
-
-    private JSONObject routing(int idx, Place from, Place to) throws JSONException {
-        System.out.println("routing " + idx +": " + from.getAddress() +" -> " + to.getAddress());
-        JSONObject route = new JSONObject();
-        route.put("RoutingIndex", idx);
-        route.put("Origin", place(from));
-        route.put("Destination", place(to));
-        return route;
     }
 
     private JSONObject place(Place from) throws JSONException {

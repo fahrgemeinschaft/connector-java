@@ -58,7 +58,7 @@ public class Tests extends TestCase {
 
     public void testPublishSubRides() throws Exception {
         Ride offer = new Ride()
-                .from(stuttgart).via(munich).to(berlin)
+                .from(stuttgart).via(munich).via(nürnberg).to(berlin)
                 .dep(new Date());
         con.publish(offer);
         // go to test.fahrgemeinschaft and assert published
