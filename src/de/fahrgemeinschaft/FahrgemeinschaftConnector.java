@@ -8,12 +8,15 @@
 package de.fahrgemeinschaft;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.json.JSONArray;
@@ -22,6 +25,7 @@ import org.json.JSONObject;
 import org.teleportr.Connector;
 import org.teleportr.Place;
 import org.teleportr.Ride;
+
 
 
 public class FahrgemeinschaftConnector extends Connector {
@@ -34,37 +38,30 @@ public class FahrgemeinschaftConnector extends Connector {
             "88071e8ebe7c755923b2b2027c36605d6b821d7" +
             "b173a314fc59b11776a489e09313c5883b8e6700124" +
             "d0e10274ab11336450dd40afb661e09a900df3da05264c";
-    static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
-    static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
+    static final SimpleDateFormat fulldf =
+            new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
+    static final SimpleDateFormat df =
+            new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
 
     @Override
-    public String authenticate() {
-        try {
-            HttpURLConnection post = (HttpURLConnection)
-                    new URL(endpoint + "/session").openConnection();
-            post.setRequestProperty("apikey", APIKEY);
-            post.setDoOutput(true);
-            post.getOutputStream().write((
-                    "{\"Email\": \"" + getSetting("username")
-                    + "\", \"Password\": \"" + getSetting("password")
-                    + "\"}").getBytes());
-            post.getOutputStream().close();
-            JSONObject json = loadJson(post);
-            return json.getJSONObject("user")
-                    .getJSONArray("KeyValuePairs")
-                    .getJSONObject(0).getString("Value");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String authenticate() throws Exception {
+        HttpURLConnection post = (HttpURLConnection)
+                new URL(endpoint + "/session").openConnection();
+        post.setRequestProperty("apikey", APIKEY);
+        post.setDoOutput(true);
+        post.getOutputStream().write((
+                "{\"Email\": \"" + get("username")
+                + "\", \"Password\": \"" + get("password")
+                + "\"}").getBytes());
+        post.getOutputStream().close();
+        JSONObject json = loadJson(post);
+        JSONObject auth = json.getJSONObject("auth");
+        set("user", auth.getString("IDuser"));
+        return auth.getString("AuthKey");
     }
 
     @Override
-    public long getRides(Place from, Place to, Date dep, Date arr) {
+    public long search(Place from, Place to, Date dep, Date arr) {
         
         startDate = df.format(dep);
 
@@ -75,12 +72,12 @@ public class FahrgemeinschaftConnector extends Connector {
             from_json.put("Latitude", "" + from.getLat());
             from_json.put("Startdate", df.format(dep));
             from_json.put("Reoccur", JSONObject.NULL);
-            from_json.put("ToleranceRadius", getSetting("radius_from"));
+            from_json.put("ToleranceRadius", get("radius_from"));
             // place.put("Starttime", JSONObject.NULL);
 
             to_json.put("Longitude", "" + to.getLng());
             to_json.put("Latitude", "" + to.getLat());
-            to_json.put("ToleranceRadius", getSetting("radius_to"));
+            to_json.put("ToleranceRadius", get("radius_to"));
             // place.put("ToleranceDays", "3");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -128,7 +125,7 @@ public class FahrgemeinschaftConnector extends Connector {
             ride.set("landline", p.getInt("Landline") + value);
         ride.details(json.getString("Description"));
         ride.ref(json.getString("TripID"));
-        ride.seats(json.getLong("Places"));
+        ride.seats(json.getInt("Places"));
         ride.dep(parseTimestamp(json));
 
         if (!json.isNull("Price")) {
@@ -165,23 +162,102 @@ public class FahrgemeinschaftConnector extends Connector {
 
     private Date parseTimestamp(JSONObject json) throws JSONException {
 //              new Date(Long.parseLong(ride.getString("Enterdate"));
-        String departure = "0000";
+        String departure = null;
         if (!json.isNull("Starttime")) {
             departure = json.getString("Starttime");
             if (departure.length() == 3)
                 departure = "0" + departure;
 //            departure = json.getString("Startdate") + departure;
-        } else {
-            System.out.println("no start time!");
         }
-        departure = startDate + departure;
+        if (departure.length() != 4) {
+            System.out.println("no start time!");
+            departure = "0000";
+        }
         try {
-            return fulldf.parse(departure);
+            return fulldf.parse(startDate + departure);
         } catch (ParseException e) {
             System.out.println("date/time parse error!");
             e.printStackTrace();
             return new Date(0);
         }
+    }
+
+    @Override
+    public int publish(Ride offer) throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("Triptype", "offer");
+        json.put("Smoker", "no");
+        json.put("IDuser", get("user"));
+        json.put("Price", "0.00");
+        json.put("Places", String.valueOf(offer.getSeats()));
+        i = 1;
+        List<Place> stops = offer.getPlaces();
+        ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
+        for (int dest = 0; dest < stops.size(); dest++)
+            for (int orig = 0; orig < dest; orig++)
+                routings.add(routing(stops.get(orig), stops.get(dest)));
+        json.put("Routings", new JSONArray(routings));
+        String dep = fulldf.format(offer.getDep());
+        json.put("Startdate", dep.subSequence(0, 8));
+        json.put("Starttime", dep.subSequence(8, 12));
+        json.put("Reoccur", new JSONObject(
+                "{ \"Saturday\": false,"
+                + "\"Monday\": false,"
+                + "\"Tuesday\": false,"
+                + "\"Wednesday\": false,"
+                + "\"Thursday\": false,"
+                + "\"Friday\": false,"
+                + "\"Sunday\": false }"));
+        json.put("Contactmail", "blablamail@gmx.net");
+        json.put("Contactmobile", "1234567");
+        json.put("Contactlandline", "56789");
+        json.put("Numberplate", "MX-123");
+        json.put("Privacy", new JSONObject(
+                "{ \"Name\": \"1\","
+                + "\"Landline\": \"1\","
+                + "\"Email\": \"1\","
+                + "\"Mobile\": \"1\","
+                + "\"NumberPlate\": \"1\" }"));
+        json.put("Description", "foo bar");
+        json.put("ClientIP", "31.16.3.104");
+        System.out.println(json);
+        HttpURLConnection post = (HttpURLConnection)
+                new URL(endpoint + "/trip").openConnection();
+        post.setRequestMethod("POST");
+        post.setRequestProperty("authkey", getAuth());
+        post.setRequestProperty("apikey", APIKEY);
+        post.setDoOutput(true);
+        OutputStreamWriter out = new OutputStreamWriter(post.getOutputStream());
+        out.write(json.toString());
+        JSONObject response = loadJson(post);
+        System.out.println(response);
+
+        return 0;
+    }
+
+    int i = 0;
+    private JSONObject routing(Place from, Place to) throws JSONException {
+        JSONObject route = new JSONObject();
+        route.put("RoutingIndex", i++);
+        route.put("Origin", place(from));
+        route.put("Destination", place(to));
+        return route;
+    }
+
+    private JSONObject place(Place from) throws JSONException {
+        JSONObject place = new JSONObject();
+        place.put("Latitude", from.getLat());
+        place.put("Longitude", from.getLng());
+        place.put("Address", from.getAddress());
+        place.put("CountryName", "Deutschland");
+        place.put("CountryCode", "DE");
+        place.put("Placetype", "geo");
+        place.put("LatLonBox", new JSONObject(
+                "{ \"North\": null,"
+                + "\"East\": null,"
+                + "\"South\": null,"
+                + "\"West\": null }"));
+        return place;
     }
 }
 
@@ -197,27 +273,10 @@ public class FahrgemeinschaftConnector extends Connector {
 // "Starttime": "1300",
 // "Contactmail": "wuac@me.com",
 // "Enterdate": "1366178563",
-// "IDuser": "29ae8215-223f-63f4-9982-39b9aca69556",
-// "Reoccur": {
-// "Saturday": false,
-// "Thursday": false,
-// "Monday": false,
-// "Tuesday": false,
-// "Wednesday": false,
-// "Friday": false,
-// "Sunday": false
-// },
 // "Deeplink": null,
 // "Places": "3",
 // "Prefgender": null,
 // "Price": "0",
-// "Privacy": {
-// "Name": "1",
-// "Landline": "1",
-// "Email": "1",
-// "Mobile": "1",
-// "NumberPlate": "1"
-// },
 // "Relevance": "10",
 // "Partnername": null,
 // "ClientIP": null,
