@@ -7,7 +7,6 @@
 
 package de.fahrgemeinschaft;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -37,12 +36,12 @@ public class Tests extends TestCase {
         assertEquals("f9bb1cab-9793-8534-5d01-58c3d27d50fc", con.get("user"));
     }
 
-    Place berlin = new Place(52.519171, 13.406092).address("Berlin");
-    Place munich = new Place(48.1671, 11.6094).address("München");
-    Place leipzig = new Place("u30u1d1g3sc").address("Leipzig");
-    Place nürnberg = new Place("u0zck43yfyx").address("Nürnberg");
+    Place berlin = new Place(52.519171, 13.406092).address("Berlin, Deutschland");
+    Place munich = new Place(48.1671, 11.6094).address("München, Deutschland");
+    Place leipzig = new Place("u30u1d1g3sc").address("Leipzig, Deutschland");
+    Place nürnberg = new Place("u0zck43yfyx").address("Nürnberg, Deutschland");
     
-    Place stuttgart = new Place(48.775417, 9.181758).address("Stuttgart");
+    Place stuttgart = new Place(48.775417, 9.181758).address("Stuttgart, Deutschland");
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
     public void testSearchRides() {
@@ -58,7 +57,9 @@ public class Tests extends TestCase {
     }
 
     public void testPublishSubRides() throws Exception {
-        Ride offer = new Ride().from(stuttgart).via(munich).to(berlin);
+        Ride offer = new Ride()
+                .from(stuttgart).via(munich).to(berlin)
+                .dep(new Date());
         con.publish(offer);
         // go to test.fahrgemeinschaft and assert published
     }
