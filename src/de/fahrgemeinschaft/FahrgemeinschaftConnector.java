@@ -193,17 +193,20 @@ public class FahrgemeinschaftConnector extends Connector {
         JSONObject json = new JSONObject();
         json.put("Triptype", "offer");
         json.put("Smoker", "no");
-        json.put("IDuser", get("user"));
-        System.out.println(get("user"));
         json.put("Price", "0.00");
+        json.put("IDuser", get("user"));
+        json.put("ClientIP", "31.16.3.104");
+        json.put("Contactmail", "blablamail@gmx.net");
+        json.put("Contactmobile", "1234567");
+        json.put("Contactlandline", "56789");
+        json.put("Numberplate", "MX-123");
+        json.put("Privacy", new JSONObject(
+                "{ \"Name\": \"1\","
+                        + "\"Landline\": \"1\","
+                        + "\"Email\": \"1\","
+                        + "\"Mobile\": \"1\","
+                        + "\"NumberPlate\": \"1\" }"));
         json.put("Places", String.valueOf(offer.getSeats()));
-        i = 1;
-        List<Place> stops = offer.getPlaces();
-        ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
-        for (int dest = 0; dest < stops.size(); dest++)
-            for (int orig = 0; orig < dest; orig++)
-                routings.add(routing(stops.get(orig), stops.get(dest)));
-        json.put("Routings", new JSONArray(routings));
         String dep = fulldf.format(offer.getDep());
         json.put("Startdate", dep.subSequence(0, 8));
         json.put("Starttime", dep.subSequence(8, 12));
@@ -215,33 +218,29 @@ public class FahrgemeinschaftConnector extends Connector {
                 + "\"Thursday\": false,"
                 + "\"Friday\": false,"
                 + "\"Sunday\": false }"));
-        json.put("Contactmail", "blablamail@gmx.net");
-        json.put("Contactmobile", "1234567");
-        json.put("Contactlandline", "56789");
-        json.put("Numberplate", "MX-123");
-        json.put("Privacy", new JSONObject(
-                "{ \"Name\": \"1\","
-                + "\"Landline\": \"1\","
-                + "\"Email\": \"1\","
-                + "\"Mobile\": \"1\","
-                + "\"NumberPlate\": \"1\" }"));
         json.put("Description", "foo bar");
-        json.put("ClientIP", "31.16.3.104");
+        List<Place> stops = offer.getPlaces();
+        ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
+        for (int dest = stops.size()-1; dest >= 0 ; dest--)
+            for (int orig = 0; orig < dest; orig++)
+                routings.add(routing(orig==0? 0:-dest,
+                        stops.get(orig), stops.get(dest)));
+        json.put("Routings", new JSONArray(routings));
         System.out.println(json);
         OutputStreamWriter out = new OutputStreamWriter(post.getOutputStream());
         out.write(json.toString());
         out.flush();
         out.close();
         JSONObject response = loadJson(post);
-        System.out.println(response);
+        System.out.println(response.getString("tripID"));
 
         return 0;
     }
 
-    int i = 0;
-    private JSONObject routing(Place from, Place to) throws JSONException {
+    private JSONObject routing(int idx, Place from, Place to) throws JSONException {
+        System.out.println("routing " + idx +": " + from.getAddress() +" -> " + to.getAddress());
         JSONObject route = new JSONObject();
-        route.put("RoutingIndex", i++);
+        route.put("RoutingIndex", idx);
         route.put("Origin", place(from));
         route.put("Destination", place(to));
         return route;
