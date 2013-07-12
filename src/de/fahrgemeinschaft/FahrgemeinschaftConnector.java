@@ -114,7 +114,7 @@ public class FahrgemeinschaftConnector extends Connector {
         value = json.getString("Contactlandline");
         if (!value.equals("") && !value.equals("null"))
             ride.set("landline", p.getInt("Landline") + value);
-        ride.details(json.getString("Description"));
+        ride.set("comment", json.getString("Description"));
         ride.ref(json.getString("TripID"));
         ride.seats(json.getInt("Places"));
         ride.dep(parseTimestamp(json));
@@ -178,34 +178,21 @@ public class FahrgemeinschaftConnector extends Connector {
         post.setRequestProperty("apikey", APIKEY);
         post.setDoOutput(true);
         JSONObject json = new JSONObject();
+//        json.put("Smoker", "no");
         json.put("Triptype", "offer");
-        json.put("Smoker", "no");
-        json.put("Price", "0.00");
         json.put("IDuser", get("user"));
-        json.put("ClientIP", "31.16.3.104");
-        json.put("Contactmail", "blablamail@gmx.net");
-        json.put("Contactmobile", "1234567");
-        json.put("Contactlandline", "56789");
-        json.put("Numberplate", "MX-123");
-        json.put("Privacy", new JSONObject(
-                "{ \"Name\": \"1\","
-                        + "\"Landline\": \"1\","
-                        + "\"Email\": \"1\","
-                        + "\"Mobile\": \"1\","
-                        + "\"NumberPlate\": \"1\" }"));
-        json.put("Places", String.valueOf(offer.getSeats()));
+        json.put("Places", offer.getSeats());
+        json.put("Price", offer.getPrice() / 100);
+        json.put("Contactmail", offer.get("mail"));
+        json.put("NumberPlate", offer.get("plate"));
+        json.put("Contactmobile", offer.get("mobile"));
+        json.put("Contactlandline", offer.get("landline"));
         String dep = fulldf.format(offer.getDep());
         json.put("Startdate", dep.subSequence(0, 8));
         json.put("Starttime", dep.subSequence(8, 12));
-        json.put("Reoccur", new JSONObject(
-                "{ \"Saturday\": false,"
-                + "\"Monday\": false,"
-                + "\"Tuesday\": false,"
-                + "\"Wednesday\": false,"
-                + "\"Thursday\": false,"
-                + "\"Friday\": false,"
-                + "\"Sunday\": false }"));
-        json.put("Description", "foo bar");
+        json.put("Description", offer.get("comment"));
+        json.put("Privacy", offer.getDetails().getJSONObject("privacy"));
+        json.put("Reoccur", offer.getDetails().getJSONObject("reoccur"));
         ArrayList<JSONObject> routings = new ArrayList<JSONObject>();
         List<Place> stops = offer.getPlaces();
         int max = stops.size() - 1;
@@ -227,7 +214,6 @@ public class FahrgemeinschaftConnector extends Connector {
         out.close();
         JSONObject response = loadJson(post);
         System.out.println(response.getString("tripID"));
-
         return 0;
     }
 
@@ -239,33 +225,6 @@ public class FahrgemeinschaftConnector extends Connector {
         place.put("CountryName", "Deutschland");
         place.put("CountryCode", "DE");
         place.put("Placetype", "geo");
-        place.put("LatLonBox", new JSONObject(
-                "{ \"North\": null,"
-                + "\"East\": null,"
-                + "\"South\": null,"
-                + "\"West\": null }"));
         return place;
     }
 }
-
-// "Triptype": "offer",
-// "Smoker": "no",
-// "Startdate": "20130419",
-// "Accuracy": {
-// "DistanceDestination": 0,
-// "OverallDistance": 0,
-// "DistanceOrigin": 0
-// },
-// "TripID": "887b0da0-5a55-6e04-995d-367e06fffc7a",
-// "Starttime": "1300",
-// "Contactmail": "wuac@me.com",
-// "Enterdate": "1366178563",
-// "Deeplink": null,
-// "Places": "3",
-// "Prefgender": null,
-// "Price": "0",
-// "Relevance": "10",
-// "Partnername": null,
-// "ClientIP": null,
-// "NumberPlate": "",
-// "Contactlandline": ""

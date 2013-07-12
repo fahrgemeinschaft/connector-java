@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import junit.framework.TestCase;
 
+import org.json.JSONObject;
 import org.teleportr.Place;
 import org.teleportr.Ride;
 
@@ -58,8 +59,27 @@ public class Tests extends TestCase {
 
     public void testPublishSubRides() throws Exception {
         Ride offer = new Ride()
-                .from(stuttgart).via(munich).via(nürnberg).to(berlin)
-                .dep(new Date());
+            .dep(new Date()).price(4200)
+            .from(stuttgart).via(munich).via(nürnberg).to(berlin)
+            .set("mail", "foo@bar.baz")
+            .set("mobile", "01234567")
+            .set("landline", "001234")
+            .set("plate", "MX-123C")
+            .set("comment", "Hi there..");
+        offer.getDetails().put("privacy", new JSONObject(
+             "{ \"Name\": \"0\","       // request
+             + "\"Landline\": \"4\","   // members
+             + "\"Email\": \"5\","      // nobody
+             + "\"Mobile\": \"1\","     // anybody
+             + "\"NumberPlate\": \"1\" }"));
+        offer.getDetails().put("reoccur", new JSONObject(
+                "{ \"Saturday\": false,"
+                + "\"Monday\": false,"
+                + "\"Tuesday\": false,"
+                + "\"Wednesday\": false,"
+                + "\"Thursday\": false,"
+                + "\"Friday\": false,"
+                + "\"Sunday\": false }"));
         con.publish(offer);
         // go to test.fahrgemeinschaft and assert published
     }
