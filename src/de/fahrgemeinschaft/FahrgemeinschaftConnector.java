@@ -61,7 +61,7 @@ public class FahrgemeinschaftConnector extends Connector {
     }
 
     @Override
-    public long search(Place from, Place to, Date dep, Date arr) {
+    public long search(Place from, Place to, Date dep, Date arr) throws Exception {
         
         startDate = df.format(dep);
 
