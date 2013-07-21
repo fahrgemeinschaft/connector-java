@@ -47,8 +47,13 @@ public class Tests extends TestCase {
     
     public void testSearchRides() {
 //        connector.getRides(munich, berlin, new Date(), null);
-        con.search(leipzig, berlin,
-                new Date(System.currentTimeMillis() + 24*3600000), null);
+        try {
+            con.search(munich, berlin,
+                    new Date(System.currentTimeMillis() + 24*3600000), null);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         con.printResults();
     }
     
@@ -61,11 +66,11 @@ public class Tests extends TestCase {
         Ride offer = new Ride()
             .dep(new Date()).price(4200)
             .from(stuttgart).via(munich).via(nürnberg).to(berlin)
-            .set("mail", "foo@bar.baz")
-            .set("mobile", "01234567")
-            .set("landline", "001234")
-            .set("plate", "MX-123C")
-            .set("comment", "Hi there..");
+            .set("EMail", "foo@bar.baz")
+            .set("Mobile", "01234567")
+            .set("Landline", "001234")
+            .set("NumberPlate", "MX-123C")
+            .set("Comment", "Hi there..");
         offer.getDetails().put("privacy", new JSONObject(
              "{ \"Name\": \"0\","       // request
              + "\"Landline\": \"4\","   // members
