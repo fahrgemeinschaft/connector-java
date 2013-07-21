@@ -34,6 +34,10 @@ public class FahrgemeinschaftConnector extends Connector {
     static final SimpleDateFormat fulldf = new SimpleDateFormat("yyyyMMddHHmm");
     static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
 
+    private String startDate;
+
+    public String endpoint =  "http://service.fahrgemeinschaft.de";
+
     @Override
     public String authenticate() throws Exception {
         HttpURLConnection post = (HttpURLConnection)
@@ -100,20 +104,28 @@ public class FahrgemeinschaftConnector extends Connector {
         return dep.getTime() + 24 * 3600 * 1000;
     }
 
+    private static final String EMAIL = "EMail";
+    private static final String MOBILE = "Mobile";
+    private static final String LANDLINE = "Landline";
+    private static final String PLATE = "NumberPlate";
+
     private Ride parseRide(JSONObject json)  throws JSONException {
 
         Ride ride = new Ride().type(Ride.OFFER);
         ride.who(json.getString("IDuser"));
-        JSONObject p = json.getJSONObject("Privacy");
         String value = json.getString("Contactmail");
         if (!value.equals("") && !value.equals("null"))
-            ride.set("mail", p.getInt("Email") + value);
+            ride.set(EMAIL, value);
         value = json.getString("Contactmobile");
         if (!value.equals("") && !value.equals("null"))
-            ride.set("mobile", p.getInt("Mobile") + value);
+            ride.set(MOBILE, value);
         value = json.getString("Contactlandline");
         if (!value.equals("") && !value.equals("null"))
-            ride.set("landline", p.getInt("Landline") + value);
+            ride.set(LANDLINE, value);
+        value = json.getString(PLATE);
+        if (!value.equals("") && !value.equals("null"))
+            ride.set(PLATE, value);
+        ride.getDetails().put("privacy", json.getJSONObject("Privacy"));
         ride.set("comment", json.getString("Description"));
         ride.ref(json.getString("TripID"));
         ride.seats(json.getInt("Places"));
@@ -184,10 +196,10 @@ public class FahrgemeinschaftConnector extends Connector {
         json.put("IDuser", get("user"));
         json.put("Places", offer.getSeats());
         json.put("Price", offer.getPrice() / 100);
-        json.put("Contactmail", offer.get("mail"));
-        json.put("NumberPlate", offer.get("plate"));
-        json.put("Contactmobile", offer.get("mobile"));
-        json.put("Contactlandline", offer.get("landline"));
+        json.put("Contactmail", offer.get(EMAIL));
+        json.put(PLATE, offer.get(PLATE));
+        json.put("Contactmobile", offer.get(MOBILE));
+        json.put("Contactlandline", offer.get(LANDLINE));
         String dep = fulldf.format(offer.getDep());
         json.put("Startdate", dep.subSequence(0, 8));
         json.put("Starttime", dep.subSequence(8, 12));
