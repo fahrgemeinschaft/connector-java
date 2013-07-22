@@ -56,13 +56,8 @@ public class Tests extends TestCase {
         }
         con.printResults();
     }
-    
-    public void testPublishRide() throws Exception {
-        con.publish(new Ride().from(stuttgart).to(berlin));
-        // go to test.fahrgemeinschaft and assert published
-    }
 
-    public void testPublishSubRides() throws Exception {
+    public void testPublishRide() throws Exception {
         Ride offer = new Ride()
             .dep(new Date()).price(4200)
             .from(stuttgart).via(munich).via(nürnberg).to(berlin)
@@ -71,13 +66,13 @@ public class Tests extends TestCase {
             .set("Landline", "001234")
             .set("NumberPlate", "MX-123C")
             .set("Comment", "Hi there..");
-        offer.getDetails().put("privacy", new JSONObject(
+        offer.getDetails().put("Privacy", new JSONObject(
              "{ \"Name\": \"0\","       // request
              + "\"Landline\": \"4\","   // members
              + "\"Email\": \"5\","      // nobody
              + "\"Mobile\": \"1\","     // anybody
              + "\"NumberPlate\": \"1\" }"));
-        offer.getDetails().put("reoccur", new JSONObject(
+        offer.getDetails().put("Reoccur", new JSONObject(
                 "{ \"Saturday\": false,"
                 + "\"Monday\": false,"
                 + "\"Tuesday\": false,"
@@ -85,7 +80,33 @@ public class Tests extends TestCase {
                 + "\"Thursday\": false,"
                 + "\"Friday\": false,"
                 + "\"Sunday\": false }"));
-        con.publish(offer);
+        System.out.println(con.publish(offer));
         // go to test.fahrgemeinschaft and assert published
+    }
+
+    public void testUpdateRide() throws Exception {
+        Ride offer = new Ride().ref("a373b9cf-1f7e-6664-8984-de31a9943738")
+            .dep(new Date()).price(4242).seats(5)
+            .from(stuttgart).via(leipzig).to(berlin)
+            .set("EMail", "foo")
+            .set("Mobile", "0123")
+            .set("Landline", "001")
+            .set("NumberPlate", "MX")
+            .set("Comment", "Hi there update..");
+        offer.getDetails().put("Privacy", new JSONObject(
+             "{ \"Name\": \"1\","       // request
+             + "\"Landline\": \"1\","   // members
+             + "\"Email\": \"1\","      // nobody
+             + "\"Mobile\": \"1\","     // anybody
+             + "\"NumberPlate\": \"1\" }"));
+        offer.getDetails().put("Reoccur", new JSONObject(
+                "{ \"Saturday\": false,"
+                + "\"Monday\": false,"
+                + "\"Tuesday\": true,"
+                + "\"Wednesday\": false,"
+                + "\"Thursday\": false,"
+                + "\"Friday\": true,"
+                + "\"Sunday\": false }"));
+        con.publish(offer);
     }
 }
