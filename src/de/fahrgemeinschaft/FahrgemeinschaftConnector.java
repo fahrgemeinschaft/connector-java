@@ -51,7 +51,7 @@ public class FahrgemeinschaftConnector extends Connector {
         post.setRequestProperty("apikey", APIKEY);
         post.setDoOutput(true);
         post.getOutputStream().write((
-                "{\"Email\": \"" + get("username")
+                "{\"Email\": \"" + get("EMail")
                 + "\", \"Password\": \"" + get("password")
                 + "\"}").getBytes());
         post.getOutputStream().close();
@@ -244,7 +244,7 @@ public class FahrgemeinschaftConnector extends Connector {
         JSONObject response = loadJson(post);
         if (!response.isNull("tripID")) {
             return response.getString("tripID");
-        } else return null;
+        } else return offer.getRef();
     }
 
     private JSONObject place(Place from) throws JSONException {

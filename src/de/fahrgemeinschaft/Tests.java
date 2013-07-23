@@ -26,7 +26,7 @@ public class Tests extends TestCase {
         con.settings = new HashMap<String, String>();
         con.settings.put("radius_from", "15");
         con.settings.put("radius_to", "25");
-        con.settings.put("username", "blablamail@gmx.net");
+        con.settings.put("EMail", "blablamail@gmx.net");
         con.settings.put("password", "blabla");
         con.endpoint =  "http://test.service.fahrgemeinschaft.de";
         super.setUp();
@@ -60,8 +60,8 @@ public class Tests extends TestCase {
     public void testPublishRide() throws Exception {
         Ride offer = new Ride()
             .dep(new Date()).price(4200)
-            .from(stuttgart).via(munich).via(nürnberg).to(berlin)
-            .set("EMail", "foo@bar.baz")
+            .from(stuttgart).via(munich).via(leipzig).to(berlin)
+            .set("EMail", "foo@bar.baz") // with upcase 'M' !
             .set("Mobile", "01234567")
             .set("Landline", "001234")
             .set("NumberPlate", "MX-123C")
@@ -69,7 +69,7 @@ public class Tests extends TestCase {
         offer.getDetails().put("Privacy", new JSONObject(
              "{ \"Name\": \"0\","       // request
              + "\"Landline\": \"4\","   // members
-             + "\"Email\": \"5\","      // nobody
+             + "\"Email\": \"5\","      // nobody   with lowcase 'm' !
              + "\"Mobile\": \"1\","     // anybody
              + "\"NumberPlate\": \"1\" }"));
         offer.getDetails().put("Reoccur", new JSONObject(
