@@ -48,10 +48,19 @@ public class Tests extends TestCase {
     public void testSearchRides() {
 //        connector.getRides(munich, berlin, new Date(), null);
         try {
-            con.search(munich, berlin,
+            con.search(stuttgart, berlin,
                     new Date(System.currentTimeMillis() + 24*3600000), null);
         } catch (Exception e) {
             // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        con.printResults();
+    }
+
+    public void testGetMyRides() {
+        try {
+            con.search(null, null, null, null);
+        } catch (Exception e) {
             e.printStackTrace();
         }
         con.printResults();
