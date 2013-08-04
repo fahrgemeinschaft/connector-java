@@ -118,4 +118,9 @@ public class Tests extends TestCase {
                 + "\"Sunday\": false }"));
         con.publish(offer);
     }
+
+    public void testDeleteRide() throws Exception {
+        Ride offer = new Ride().ref("605451e3-69b4-8ad4-6566-3ea0b496d03b");
+        con.delete(offer);
+    }
 }
