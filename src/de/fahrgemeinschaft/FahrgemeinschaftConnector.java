@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import org.teleportr.Connector;
 import org.teleportr.Place;
 import org.teleportr.Ride;
+import org.teleportr.Ride.Mode;
 
 
 
@@ -209,10 +210,14 @@ public class FahrgemeinschaftConnector extends Connector {
         json.put("Triptype", "offer");
         json.put("TripID", offer.getRef());
         json.put("IDuser", get("user"));
+        if (offer.getMode().equals(Mode.TRAIN)) {
+            json.put(PLATE, "Bahn");
+        } else {
+            json.put(PLATE, offer.get(PLATE));
+        }
         json.put("Places", offer.getSeats());
         json.put("Price", offer.getPrice() / 100);
         json.put("Contactmail", offer.get(EMAIL));
-        json.put(PLATE, offer.get(PLATE));
         json.put("Contactmobile", offer.get(MOBILE));
         json.put("Contactlandline", offer.get(LANDLINE));
         String dep = fulldf.format(offer.getDep());

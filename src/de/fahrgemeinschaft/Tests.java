@@ -15,6 +15,7 @@ import junit.framework.TestCase;
 import org.json.JSONObject;
 import org.teleportr.Place;
 import org.teleportr.Ride;
+import org.teleportr.Ride.Mode;
 
 public class Tests extends TestCase {
 
@@ -93,6 +94,12 @@ public class Tests extends TestCase {
         // go to test.fahrgemeinschaft and assert published
     }
 
+    public void testBahn() throws Exception {
+        Ride offer = new Ride().dep(new Date()).price(4200).mode(Mode.TRAIN)
+            .from(stuttgart).via(munich).via(leipzig).to(berlin);
+        System.out.println(con.publish(offer));
+    }
+
     public void testUpdateRide() throws Exception {
         Ride offer = new Ride().ref("a373b9cf-1f7e-6664-8984-de31a9943738")
             .dep(new Date()).price(4242).seats(5)
@@ -120,7 +127,7 @@ public class Tests extends TestCase {
     }
 
     public void testDeleteRide() throws Exception {
-        Ride offer = new Ride().ref("605451e3-69b4-8ad4-6566-3ea0b496d03b");
+        Ride offer = new Ride().ref("d206d346-70be-3ec4-91f7-b02308c8f069");
         con.delete(offer);
     }
 }
