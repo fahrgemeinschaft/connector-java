@@ -96,8 +96,13 @@ public class Tests extends TestCase {
 
     public void testBahn() throws Exception {
         Ride offer = new Ride().dep(new Date()).price(4200).mode(Mode.TRAIN)
-            .from(stuttgart).via(munich).via(leipzig).to(berlin);
-        System.out.println(con.publish(offer));
+            .from(stuttgart).via(munich).via(leipzig).to(berlin).activate();
+        String id = con.publish(offer);
+        System.out.println(id);
+        con.search(stuttgart, berlin,
+                new Date(System.currentTimeMillis() - 2*3600000), null);
+        con.printResults();
+        
     }
 
     public void testUpdateRide() throws Exception {
