@@ -83,13 +83,13 @@ public class Tests extends TestCase {
              + "\"Mobile\": \"1\","     // anybody
              + "\"NumberPlate\": \"1\" }"));
         offer.getDetails().put("Reoccur", new JSONObject(
-                "{ \"Saturday\": false,"
-                + "\"Monday\": false,"
+                "{ \"Monday\": false,"
                 + "\"Tuesday\": false,"
-                + "\"Wednesday\": false,"
+                + "\"Wednesday\": true,"
                 + "\"Thursday\": false,"
                 + "\"Friday\": false,"
-                + "\"Sunday\": false }"));
+                + "\"Saturday\": false,"
+                + "\"Sunday\": true }"));
         System.out.println(con.publish(offer));
         // go to test.fahrgemeinschaft and assert published
     }
@@ -102,11 +102,11 @@ public class Tests extends TestCase {
         con.search(stuttgart, berlin,
                 new Date(System.currentTimeMillis() - 2*3600000), null);
         con.printResults();
-        
     }
 
+
     public void testUpdateRide() throws Exception {
-        Ride offer = new Ride().ref("a373b9cf-1f7e-6664-8984-de31a9943738")
+        Ride offer = new Ride().ref("aebe362a-a6bc-6eb4-4d56-535dc8e99693")
             .dep(new Date()).price(4242).seats(5)
             .from(stuttgart).via(leipzig).to(berlin)
             .set("EMail", "foo")
@@ -121,12 +121,12 @@ public class Tests extends TestCase {
              + "\"Mobile\": \"1\","     // anybody
              + "\"NumberPlate\": \"1\" }"));
         offer.getDetails().put("Reoccur", new JSONObject(
-                "{ \"Saturday\": false,"
-                + "\"Monday\": false,"
+                "{ \"Monday\": false,"
                 + "\"Tuesday\": true,"
                 + "\"Wednesday\": false,"
                 + "\"Thursday\": false,"
                 + "\"Friday\": true,"
+                + "\"Saturday\": false,"
                 + "\"Sunday\": false }"));
         con.publish(offer);
     }
