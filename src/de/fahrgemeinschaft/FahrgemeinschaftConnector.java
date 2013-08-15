@@ -153,7 +153,7 @@ public class FahrgemeinschaftConnector extends Connector {
             if (value.equals("Bahn"))
                 ride.mode(Mode.TRAIN);
         }
-        ride.getDetails().put("privacy", json.getJSONObject("Privacy"));
+        ride.getDetails().put("Privacy", json.getJSONObject("Privacy"));
         ride.set("Comment", json.getString("Description"));
         if (json.getInt("Relevance") == 10) {
             ride.activate();
