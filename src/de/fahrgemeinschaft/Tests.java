@@ -10,6 +10,8 @@ package de.fahrgemeinschaft;
 import java.util.Date;
 import java.util.HashMap;
 
+import javax.security.sasl.AuthenticationException;
+
 import junit.framework.TestCase;
 
 import org.json.JSONObject;
@@ -33,8 +35,18 @@ public class Tests extends TestCase {
         super.setUp();
     }
 
-    public void testAuth() {
-        assertNotNull(con.getAuth());
+    public void testAuth() throws Exception {
+        try {
+            con.authenticate("wrong");
+            assertNotNull("should not happen", null);
+        } catch (AuthenticationException e) {
+            assertNull("should happen", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        assertNotNull(con.authenticate("blabla"));
+        assertEquals("bla", con.get("firstname"));
+        assertEquals("b.", con.get("lastname"));
         assertEquals("f9bb1cab-9793-8534-5d01-58c3d27d50fc", con.get("user"));
     }
 
@@ -46,16 +58,21 @@ public class Tests extends TestCase {
     Place stuttgart = new Place(48.775417, 9.181758).address("Stuttgart, Deutschland");
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
-    public void testSearchRides() {
-//        connector.getRides(munich, berlin, new Date(), null);
+    public void testSearchRides() throws Exception {
+        con.search(stuttgart, berlin,
+                new Date(System.currentTimeMillis() + 24*3600000), null);
+        con.printResults();
+    }
+
+    public void testWrongApiKey() throws Exception {
         try {
+            Secret.APIKEY = "wrong";
             con.search(stuttgart, berlin,
                     new Date(System.currentTimeMillis() + 24*3600000), null);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            assertNotNull("should not happen", null);
+        } catch (AuthenticationException e) {
+            assertNull("should happen", null);
         }
-        con.printResults();
     }
 
     public void testGetMyRides() {
