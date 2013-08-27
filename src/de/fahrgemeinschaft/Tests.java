@@ -91,7 +91,7 @@ public class Tests extends TestCase {
 
     public void testPublishRide() throws Exception {
         con.login("blabla");
-        Ride offer = new Ride()
+        Ride offer = new Ride().activate()
             .dep(new Date()).price(4200)
             .from(stuttgart).via(munich).via(leipzig).to(berlin)
             .set("EMail", "foo@bar.baz") // with upcase 'M' !
@@ -156,6 +156,7 @@ public class Tests extends TestCase {
     }
 
     public void testDeleteRide() throws Exception {
+        con.login("blabla");
         Ride offer = new Ride().ref("d206d346-70be-3ec4-91f7-b02308c8f069");
         con.delete(offer);
     }

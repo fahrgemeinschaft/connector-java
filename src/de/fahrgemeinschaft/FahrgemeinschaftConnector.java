@@ -76,7 +76,6 @@ public class FahrgemeinschaftConnector extends Connector {
         HttpURLConnection get;
         if (from == null && to == null) { // myrides
             get = (HttpURLConnection) new URL(endpoint + "/trip").openConnection();
-            get.setRequestProperty("authkey", getAuth());
         } else {
             JSONObject from_json = new JSONObject();
             JSONObject to_json = new JSONObject();
@@ -101,6 +100,8 @@ public class FahrgemeinschaftConnector extends Connector {
         }
         try {
             get.setRequestProperty("apikey", Secret.APIKEY);
+            if (getAuth() != null)
+                get.setRequestProperty("authkey", getAuth());
             JSONObject json = loadJson(get);
             if (get.getResponseCode() == 403)
                 throw new AuthException();
@@ -235,8 +236,9 @@ public class FahrgemeinschaftConnector extends Connector {
                     + offer.getRef()).openConnection();
             post.setRequestMethod("PUT");
         }
-        post.setRequestProperty("authkey", getAuth());
         post.setRequestProperty("apikey", Secret.APIKEY);
+        if (getAuth() != null)
+            post.setRequestProperty("authkey", getAuth());
         post.setDoOutput(true);
         JSONObject json = new JSONObject();
 //        json.put("Smoker", "no");
