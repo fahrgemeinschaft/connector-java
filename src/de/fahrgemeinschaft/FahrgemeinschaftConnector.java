@@ -131,7 +131,7 @@ public class FahrgemeinschaftConnector extends Connector {
         } else return 0;
     }
 
-    private static final String EMAIL = "EMail";
+    private static final String EMAIL = "Email";
     private static final String MOBILE = "Mobile";
     private static final String LANDLINE = "Landline";
     private static final String PLATE = "NumberPlate";
@@ -166,7 +166,7 @@ public class FahrgemeinschaftConnector extends Connector {
         ride.ref(json.getString("TripID"));
         ride.seats(json.getInt("Places"));
         ride.dep(parseTimestamp(json));
-        ride.getDetails().put("reoccur", json.getJSONObject("Reoccur"));
+        ride.getDetails().put("Reoccur", json.getJSONObject("Reoccur"));
 
         if (!json.isNull("Price")) {
             ride.price((int) Double.parseDouble(

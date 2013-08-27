@@ -94,17 +94,17 @@ public class Tests extends TestCase {
         Ride offer = new Ride().activate()
             .dep(new Date()).price(4200)
             .from(stuttgart).via(munich).via(leipzig).to(berlin)
-            .set("EMail", "foo@bar.baz") // with upcase 'M' !
+            .set("Email", "foo@bar.baz")
             .set("Mobile", "01234567")
             .set("Landline", "001234")
             .set("NumberPlate", "MX-123C")
             .set("Comment", "Hi there..");
         offer.getDetails().put("Privacy", new JSONObject(
-             "{ \"Name\": \"0\","       // request
+             "{ \"Name\": \"5\","       // nobody
              + "\"Landline\": \"4\","   // members
-             + "\"Email\": \"5\","      // nobody   with lowcase 'm' !
-             + "\"Mobile\": \"1\","     // anybody
-             + "\"NumberPlate\": \"1\" }"));
+             + "\"Email\": \"1\","      // anybody
+             + "\"Mobile\": \"0\","     // request
+             + "\"NumberPlate\": \"0\" } "));
         offer.getDetails().put("Reoccur", new JSONObject(
                 "{ \"Monday\": false,"
                 + "\"Tuesday\": false,"
@@ -130,18 +130,18 @@ public class Tests extends TestCase {
 
 
     public void testUpdateRide() throws Exception {
-        Ride offer = new Ride().ref("aebe362a-a6bc-6eb4-4d56-535dc8e99693")
+        Ride offer = new Ride().ref("071c86c5-2631-85c4-2941-890da72bf486")
             .dep(new Date()).price(4242).seats(5)
             .from(stuttgart).via(leipzig).to(berlin)
-            .set("EMail", "foo")
+            .set("Email", "foo")
             .set("Mobile", "0123")
             .set("Landline", "001")
             .set("NumberPlate", "MX")
             .set("Comment", "Hi there update..");
         offer.getDetails().put("Privacy", new JSONObject(
-             "{ \"Name\": \"1\","       // request
-             + "\"Landline\": \"1\","   // members
-             + "\"Email\": \"1\","      // nobody
+             "{ \"Name\": \"1\","       // anybody
+             + "\"Landline\": \"1\","   // anybody
+             + "\"Email\": \"1\","      // anybody
              + "\"Mobile\": \"1\","     // anybody
              + "\"NumberPlate\": \"1\" }"));
         offer.getDetails().put("Reoccur", new JSONObject(
@@ -157,7 +157,7 @@ public class Tests extends TestCase {
 
     public void testDeleteRide() throws Exception {
         con.login("blabla");
-        Ride offer = new Ride().ref("d206d346-70be-3ec4-91f7-b02308c8f069");
+        Ride offer = new Ride().ref("618bf962-b45e-7394-6989-63e70d30b76b");
         con.delete(offer);
     }
 
@@ -167,13 +167,13 @@ public class Tests extends TestCase {
         Ride offer = new Ride().activate()
             .dep(new Date(later)).price(4200)
             .from(stuttgart).via(munich).via(leipzig).to(berlin)
-            .set("EMail", "foo@bar.baz") // with upcase 'M' !
+            .set("Email", "foo@bar.baz")
             .set("Mobile", "01234567")
             .set("Landline", "001234");
         offer.getDetails().put("Privacy", new JSONObject(
              "{ \"Name\": \"0\","       // request
              + "\"Landline\": \"4\","   // members
-             + "\"Email\": \"5\","      // nobody   with lowcase 'm' !
+             + "\"Email\": \"5\","      // nobody
              + "\"Mobile\": \"1\","     // anybody
              + "\"NumberPlate\": \"1\" }"));
         String id = con.publish(offer);
