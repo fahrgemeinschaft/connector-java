@@ -160,4 +160,39 @@ public class Tests extends TestCase {
         Ride offer = new Ride().ref("d206d346-70be-3ec4-91f7-b02308c8f069");
         con.delete(offer);
     }
+
+    public void testContactVisibility() throws Exception {
+        long later = System.currentTimeMillis() + 300*24*3600000;
+        con.login("blabla");
+        Ride offer = new Ride().activate()
+            .dep(new Date(later)).price(4200)
+            .from(stuttgart).via(munich).via(leipzig).to(berlin)
+            .set("EMail", "foo@bar.baz") // with upcase 'M' !
+            .set("Mobile", "01234567")
+            .set("Landline", "001234");
+        offer.getDetails().put("Privacy", new JSONObject(
+             "{ \"Name\": \"0\","       // request
+             + "\"Landline\": \"4\","   // members
+             + "\"Email\": \"5\","      // nobody   with lowcase 'm' !
+             + "\"Mobile\": \"1\","     // anybody
+             + "\"NumberPlate\": \"1\" }"));
+        String id = con.publish(offer);
+        assertNotNull("should be published", id);
+
+        con.login("wrong");
+        con.search(stuttgart, berlin, new Date(later), null);
+        assertEquals("should find one", 1, con.getNumberOfRidesFound());
+        Ride ride = con.ridesBatch.get(0);
+        assertEquals("should match ref", id, ride.ref);
+        assertEquals("public", "01234567", ride.details.getString("Mobile"));
+        assertFalse("should not be visible", ride.details.has("Landline"));
+
+        con.login("blabla");
+        con.ridesBatch.clear();
+        con.search(stuttgart, berlin, new Date(later), null);
+        ride = con.ridesBatch.get(0);
+        assertEquals("members", "001234", ride.details.getString("Landline"));
+
+        con.delete(new Ride().ref(id)); // clean up
+    }
 }
