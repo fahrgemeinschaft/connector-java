@@ -88,7 +88,6 @@ public class FahrgemeinschaftConnector extends Connector {
                 from_json.put("Reoccur", JSONObject.NULL);
                 from_json.put("ToleranceRadius", get("radius_from"));
                 // place.put("Starttime", JSONObject.NULL);
-                
                 to_json.put("Longitude", "" + to.getLng());
                 to_json.put("Latitude", "" + to.getLat());
                 to_json.put("ToleranceRadius", get("radius_to"));
@@ -121,12 +120,14 @@ public class FahrgemeinschaftConnector extends Connector {
     }
 
     private long getNextDayMorning(Date dep) {
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(dep.getTime() + 24 * 3600000); // plus one day
-        c.set(Calendar.HOUR_OF_DAY, 0); // reset
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        return c.getTimeInMillis();
+        if (dep != null) {
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(dep.getTime() + 24 * 3600000); // plus one day
+            c.set(Calendar.HOUR_OF_DAY, 0); // reset
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            return c.getTimeInMillis();
+        } else return 0;
     }
 
     private static final String EMAIL = "EMail";

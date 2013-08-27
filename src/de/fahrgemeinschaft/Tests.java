@@ -10,11 +10,10 @@ package de.fahrgemeinschaft;
 import java.util.Date;
 import java.util.HashMap;
 
-import javax.security.sasl.AuthenticationException;
-
 import junit.framework.TestCase;
 
 import org.json.JSONObject;
+import org.teleportr.AuthException;
 import org.teleportr.Place;
 import org.teleportr.Ride;
 import org.teleportr.Ride.Mode;
@@ -29,8 +28,7 @@ public class Tests extends TestCase {
         con.settings = new HashMap<String, String>();
         con.settings.put("radius_from", "15");
         con.settings.put("radius_to", "25");
-        con.settings.put("EMail", "blablamail@gmx.net");
-        con.settings.put("password", "blabla");
+        con.settings.put("login", "blablamail@gmx.net");
         con.endpoint =  "http://test.service.fahrgemeinschaft.de";
         super.setUp();
     }
@@ -38,9 +36,9 @@ public class Tests extends TestCase {
     public void testAuth() throws Exception {
         try {
             con.authenticate("wrong");
-            assertNotNull("should not happen", null);
-        } catch (AuthenticationException e) {
-            assertNull("should happen", null);
+            assertNull("should not happen");
+        } catch (AuthException e) {
+            assertNotNull("should happen");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -48,6 +46,12 @@ public class Tests extends TestCase {
         assertEquals("bla", con.get("firstname"));
         assertEquals("b.", con.get("lastname"));
         assertEquals("f9bb1cab-9793-8534-5d01-58c3d27d50fc", con.get("user"));
+        con.login("blabla");
+        assertNotNull(con.getAuth());
+        try {
+            con.login("wrong again");
+        } catch (Exception e) {}
+        assertNull(con.getAuth());
     }
 
     Place berlin = new Place(52.519171, 13.406092).address("Berlin, Deutschland");
@@ -70,13 +74,14 @@ public class Tests extends TestCase {
             con.search(stuttgart, berlin,
                     new Date(System.currentTimeMillis() + 24*3600000), null);
             assertNotNull("should not happen", null);
-        } catch (AuthenticationException e) {
+        } catch (AuthException e) {
             assertNull("should happen", null);
         }
     }
 
     public void testGetMyRides() {
         try {
+            con.login("blabla");
             con.search(null, null, null, null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,6 +90,7 @@ public class Tests extends TestCase {
     }
 
     public void testPublishRide() throws Exception {
+        con.login("blabla");
         Ride offer = new Ride()
             .dep(new Date()).price(4200)
             .from(stuttgart).via(munich).via(leipzig).to(berlin)
@@ -107,7 +113,8 @@ public class Tests extends TestCase {
                 + "\"Friday\": false,"
                 + "\"Saturday\": false,"
                 + "\"Sunday\": true }"));
-        System.out.println(con.publish(offer));
+        String id = con.publish(offer);
+        System.out.println(id);
         // go to test.fahrgemeinschaft and assert published
     }
 
