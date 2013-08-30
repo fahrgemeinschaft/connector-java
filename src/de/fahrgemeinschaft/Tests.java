@@ -56,6 +56,9 @@ public class Tests extends TestCase {
 
     Place berlin = new Place(52.519171, 13.406092).address("Berlin, Deutschland");
     Place munich = new Place(48.1671, 11.6094).address("München, Deutschland");
+    Place augsburg = new Place(48.3667, 10.9000).address("Augsburg, Deutschland");
+    Place hamburg = new Place(53.5653, 10.0014).address("Hamburg, Deutschland");
+    Place hannover = new Place(52.3667, 9.7167).address("Hannover, Deutschland");
     Place leipzig = new Place("u30u1d1g3sc").address("Leipzig, Deutschland");
     Place nürnberg = new Place("u0zck43yfyx").address("Nürnberg, Deutschland");
     
@@ -63,15 +66,15 @@ public class Tests extends TestCase {
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
     public void testSearchRides() throws Exception {
-        con.search(stuttgart, berlin,
-                new Date(System.currentTimeMillis() + 24*3600000), null);
+        con.search(hamburg, hannover,
+                new Date(System.currentTimeMillis() + 0*24*3600000), null);
         con.printResults();
     }
 
     public void testWrongApiKey() throws Exception {
         try {
             Secret.APIKEY = "wrong";
-            con.search(stuttgart, berlin,
+            con.search(hamburg, hannover,
                     new Date(System.currentTimeMillis() + 24*3600000), null);
             assertNotNull("should not happen", null);
         } catch (AuthException e) {
