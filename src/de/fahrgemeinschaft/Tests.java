@@ -95,8 +95,8 @@ public class Tests extends TestCase {
     public void testPublishRide() throws Exception {
         con.login("blabla");
         Ride offer = new Ride().activate()
-            .dep(new Date()).price(4200)
-            .from(stuttgart).via(munich).via(leipzig).to(berlin)
+            .dep(new Date()).price(0)
+            .from(hamburg).via(munich).via(leipzig).to(hannover)
             .set("Email", "foo@bar.baz")
             .set("Mobile", "01234567")
             .set("Landline", "001234")
@@ -108,14 +108,14 @@ public class Tests extends TestCase {
              + "\"Email\": \"1\","      // anybody
              + "\"Mobile\": \"0\","     // request
              + "\"NumberPlate\": \"0\" } "));
-        offer.getDetails().put("Reoccur", new JSONObject(
-                "{ \"Monday\": false,"
-                + "\"Tuesday\": false,"
-                + "\"Wednesday\": true,"
-                + "\"Thursday\": false,"
-                + "\"Friday\": false,"
-                + "\"Saturday\": false,"
-                + "\"Sunday\": true }"));
+//        offer.getDetails().put("Reoccur", new JSONObject(
+//                "{ \"Monday\": false,"
+//                + "\"Tuesday\": false,"
+//                + "\"Wednesday\": true,"
+//                + "\"Thursday\": false,"
+//                + "\"Friday\": false,"
+//                + "\"Saturday\": false,"
+//                + "\"Sunday\": true }"));
         String id = con.publish(offer);
         System.out.println(id);
         // go to test.fahrgemeinschaft and assert published
