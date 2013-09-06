@@ -66,16 +66,16 @@ public class Tests extends TestCase {
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
     public void testSearchRides() throws Exception {
-        con.search(hamburg, hannover,
-                new Date(System.currentTimeMillis() + 0*24*3600000), null);
+        con.search(new Ride().type(Ride.SEARCH).from(hamburg).to(hannover)
+                .dep(new Date(System.currentTimeMillis() + 0*24*3600000)));
         con.printResults();
     }
 
     public void testWrongApiKey() throws Exception {
         try {
             Secret.APIKEY = "wrong";
-            con.search(hamburg, hannover,
-                    new Date(System.currentTimeMillis() + 24*3600000), null);
+            con.search(new Ride().type(Ride.SEARCH).from(hamburg).to(hannover)
+                    .dep(new Date(System.currentTimeMillis() + 0*24*3600000)));
             assertNotNull("should not happen", null);
         } catch (AuthException e) {
             assertNull("should happen", null);
@@ -85,7 +85,7 @@ public class Tests extends TestCase {
     public void testGetMyRides() {
         try {
             con.login("blabla");
-            con.search(null, null, null, null);
+            con.search(null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,8 +126,8 @@ public class Tests extends TestCase {
             .from(stuttgart).via(munich).via(leipzig).to(berlin).activate();
         String id = con.publish(offer);
         System.out.println(id);
-        con.search(stuttgart, berlin,
-                new Date(System.currentTimeMillis() - 2*3600000), null);
+        con.search(new Ride().from(stuttgart).to(berlin)
+                .dep(new Date(System.currentTimeMillis() - 2*3600000)));
         con.printResults();
     }
 
@@ -183,7 +183,7 @@ public class Tests extends TestCase {
         assertNotNull("should be published", id);
 
         con.login("wrong");
-        con.search(stuttgart, berlin, new Date(later), null);
+        con.search(new Ride().from(stuttgart).to(berlin).dep(new Date(later)));
         assertEquals("should find one", 1, con.getNumberOfRidesFound());
         Ride ride = con.ridesBatch.get(0);
         assertEquals("should match ref", id, ride.ref);
@@ -192,7 +192,7 @@ public class Tests extends TestCase {
 
         con.login("blabla");
         con.ridesBatch.clear();
-        con.search(stuttgart, berlin, new Date(later), null);
+        con.search(new Ride().from(stuttgart).to(berlin).dep(new Date(later)));
         ride = con.ridesBatch.get(0);
         assertEquals("members", "001234", ride.details.getString("Landline"));
 
