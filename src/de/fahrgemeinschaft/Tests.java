@@ -61,13 +61,14 @@ public class Tests extends TestCase {
     Place hannover = new Place(52.3667, 9.7167).address("Hannover, Deutschland");
     Place leipzig = new Place("u30u1d1g3sc").address("Leipzig, Deutschland");
     Place nürnberg = new Place("u0zck43yfyx").address("Nürnberg, Deutschland");
+    Place füssing = new Place(48.3500, 13.3000).address("Bad Füssing, Deutschland");
     
     Place stuttgart = new Place(48.775417, 9.181758).address("Stuttgart, Deutschland");
     Place muc_flughafen_nordallee = new Place(48.356820, 11.762299);
     
     public void testSearchRides() throws Exception {
-        con.search(new Ride().type(Ride.SEARCH).from(hamburg).to(hannover)
-                .dep(new Date(System.currentTimeMillis() + 0*24*3600000)));
+        con.search(new Ride().type(Ride.SEARCH).from(füssing).to(munich)
+                .dep(new Date(System.currentTimeMillis() + 1*24*3600000)));
         con.printResults();
     }
 
