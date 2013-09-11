@@ -118,6 +118,7 @@ public class Tests extends TestCase {
 //                + "\"Saturday\": false,"
 //                + "\"Sunday\": true }"));
         String id = con.publish(offer);
+        assertNotNull(id);
         System.out.println(id);
         // go to test.fahrgemeinschaft and assert published
     }
