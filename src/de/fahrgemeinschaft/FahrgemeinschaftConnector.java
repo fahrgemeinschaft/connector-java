@@ -211,7 +211,7 @@ public class FahrgemeinschaftConnector extends Connector {
 
     private Ride parseRide(JSONObject json)  throws JSONException {
 
-        Ride ride = new Ride().type(Ride.OFFER);
+        Ride ride = new Ride().type(Ride.OFFER).mode(Mode.CAR);
         if (startDate == null) ride.marked(); // myrides
         ride.who(json.getString(ID_USER));
         String value = json.getString(CONTACTMAIL);
@@ -338,7 +338,7 @@ public class FahrgemeinschaftConnector extends Connector {
         json.put(TRIPTYPE, OFFER);
         json.put(TRIP_ID, offer.getRef());
         json.put(ID_USER, get(USER));
-        if (offer.getMode().equals(Mode.TRAIN)) {
+        if (offer.getMode() != null && offer.getMode().equals(Mode.TRAIN)) {
             json.put(PLATE, BAHN);
         } else {
             json.put(PLATE, offer.get(PLATE));
@@ -381,8 +381,9 @@ public class FahrgemeinschaftConnector extends Connector {
         out.close();
         JSONObject response = loadJson(post);
         if (!response.isNull(TRIP_ID_WITH_SMALL_t)) {
-            return response.getString(TRIP_ID_WITH_SMALL_t);
-        } else return offer.getRef();
+            offer.ref(response.getString(TRIP_ID_WITH_SMALL_t));
+        }
+        return offer.getRef();
     }
 
     private JSONObject place(Place from) throws JSONException {
