@@ -24,7 +24,7 @@ public class Tests extends TestCase {
         con.settings.put("radius_from", "15");
         con.settings.put("radius_to", "25");
         con.settings.put("login", "blablamail@gmx.net");
-        con.endpoint =  "http://test.service.fahrgemeinschaft.de";
+        con.endpoint =  "http://service.fahrgemeinschaft.de";
         super.setUp();
     }
 

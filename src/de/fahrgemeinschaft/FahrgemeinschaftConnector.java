@@ -32,6 +32,7 @@ import org.teleportr.Ride.Mode;
 
 public class FahrgemeinschaftConnector extends Connector {
 
+    public static final int TYPE_OFFER_REOCCURING = 53;
 
     private static final String ID = "/id/";
     private static final String PUT = "PUT";
@@ -62,8 +63,6 @@ public class FahrgemeinschaftConnector extends Connector {
             new SimpleDateFormat("yyyyMMddHHmm", Locale.GERMAN);
     static final SimpleDateFormat df =
             new SimpleDateFormat("yyyyMMdd", Locale.GERMAN);
-    public static final long reoccuring = 2555452800000l;
-    static final String XMAS2050 = "20501224";
     public static final String[] DAYS = new String[] { "Monday", "Tuesday",
         "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
     };
@@ -246,26 +245,20 @@ public class FahrgemeinschaftConnector extends Connector {
         }
 
         JSONObject reoccur = json.getJSONObject(REOCCUR);
-        boolean isReoccuring = false;
-        for (int i = 0; i < 7; i++) {
-            if (reoccur.getBoolean(FahrgemeinschaftConnector.DAYS[i])) {
-                isReoccuring = true;
-                break;
-            }
-        }
+        boolean isReoccuring = isReoccuring(reoccur);
+        boolean isMyride = startDate == null;
+        String time = parseTime(json);
+
         if (isReoccuring) {
-            ride.arr(new Date(reoccuring));
             ride.getDetails().put(REOCCUR, reoccur);
         }
-        String time = parseTime(json);
-        if (startDate != null) {
+        if (isReoccuring && isMyride) {
+            ride.type(TYPE_OFFER_REOCCURING);
+        }
+        if (isMyride) {
+            ride.dep(parseDate(json.getString(STARTDATE) + time));
+        } else {
             ride.dep(parseDate(startDate + time));
-        } else { // myrides
-            if (isReoccuring) {
-                ride.dep(parseDate(XMAS2050 + time));
-            } else {
-                ride.dep(parseDate(json.getString(STARTDATE) + time));
-            }
         }
 
         JSONArray routings = json.getJSONArray(ROUTINGS);
@@ -281,6 +274,17 @@ public class FahrgemeinschaftConnector extends Connector {
         ride.to(store(parsePlace(routings.getJSONObject(0)
                 .getJSONObject(DESTINATION))));
         return ride;
+    }
+
+    public boolean isReoccuring(JSONObject reoccur) throws JSONException {
+        boolean isReoccuring = false;
+        for (int i = 0; i < 7; i++) {
+            if (reoccur.getBoolean(FahrgemeinschaftConnector.DAYS[i])) {
+                isReoccuring = true;
+                break;
+            }
+        }
+        return isReoccuring;
     }
 
     private Place parsePlace(JSONObject json) throws JSONException {
