@@ -41,9 +41,23 @@ public class TestDownload extends Tests {
     }
 
     public void testSearchRides() throws Exception {
-        con.search(new Ride().type(Ride.SEARCH).from(füssing).to(munich)
+        con.search(new Ride().type(Ride.SEARCH).from(stuttgart).to(berlin)
                 .dep(new Date(System.currentTimeMillis() + 1*24*3600000)));
         con.printResults();
+    }
+
+    public void testSearchFromHereToAnywhere() throws Exception {
+        con.search(new Ride().type(Ride.SEARCH).from(stuttgart)
+                .dep(new Date(System.currentTimeMillis() + 1*24*3600000)));
+        con.printResults();
+        assertTrue(con.getNumberOfRidesFound() > 0);
+    }
+
+    public void testSearchFromAnywhereToHere() throws Exception {
+        con.search(new Ride().type(Ride.SEARCH).to(stuttgart)
+                .dep(new Date(System.currentTimeMillis() + 1*24*3600000)));
+        con.printResults();
+        assertTrue(con.getNumberOfRidesFound() > 0);
     }
 
     public void testWrongApiKey() throws Exception {
