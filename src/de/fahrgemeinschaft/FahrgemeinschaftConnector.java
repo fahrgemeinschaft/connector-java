@@ -54,6 +54,8 @@ public class FahrgemeinschaftConnector extends Connector {
     private static final String AUTHKEY = "authkey";
     private static final String AUTH_KEY = "AuthKey";
 
+    public static String USER_AGENT = "Android-App";
+
     private static final String FAHRGEMEINSCHAFT_DE
             = "http://service.fahrgemeinschaft.de";
     public String endpoint =  FAHRGEMEINSCHAFT_DE;
@@ -67,11 +69,13 @@ public class FahrgemeinschaftConnector extends Connector {
         "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
     };
 
+
     @Override
     public String authenticate(String credential) throws Exception {
         System.out.println("refreshing authtoken");
         HttpURLConnection post = (HttpURLConnection)
                 new URL(endpoint + SESSION).openConnection();
+        post.setRequestProperty("User-Agent", USER_AGENT);
         post.setRequestProperty(APIKEY, Secret.APIKEY);
         post.setDoOutput(true);
         post.getOutputStream().write(new JSONObject()
@@ -136,6 +140,7 @@ public class FahrgemeinschaftConnector extends Connector {
                     .append(SEARCH_DESTINATION).append(to_json)
                     .toString()).openConnection();
         }
+        get.setRequestProperty("User-Agent", USER_AGENT);
         get.setRequestProperty(APIKEY, Secret.APIKEY);
         if (getAuth() != null)
             get.setRequestProperty(AUTHKEY, getAuth());
@@ -333,6 +338,7 @@ public class FahrgemeinschaftConnector extends Connector {
                     .append(offer.getRef()).toString()).openConnection();
             post.setRequestMethod(PUT);
         }
+        post.setRequestProperty("User-Agent", USER_AGENT);
         post.setRequestProperty(APIKEY, Secret.APIKEY);
         if (getAuth() != null)
             post.setRequestProperty(AUTHKEY, getAuth());
