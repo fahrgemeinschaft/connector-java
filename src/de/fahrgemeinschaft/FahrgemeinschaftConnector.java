@@ -46,17 +46,17 @@ public class FahrgemeinschaftConnector extends Connector {
     private static final String NULL = "null";
     private static final String NOTIME = "2359";
 
-    private static final String USER = "user";
-    private static final String AUTH = "auth";
-    private static final String LOGIN = "login";
-    private static final String APIKEY = "apikey";
+    public static final String USER = "user";
+    public static final String AUTH = "auth";
+    public static final String LOGIN = "login";
+    public static final String APIKEY = "apikey";
     private static final String PASSWD = "Password";
     private static final String AUTHKEY = "authkey";
     private static final String AUTH_KEY = "AuthKey";
 
     public static String USER_AGENT = "Android-App";
 
-    private static final String FAHRGEMEINSCHAFT_DE
+    public static final String FAHRGEMEINSCHAFT_DE
             = "http://service.fahrgemeinschaft.de";
     public String endpoint =  FAHRGEMEINSCHAFT_DE;
 
@@ -100,17 +100,17 @@ public class FahrgemeinschaftConnector extends Connector {
         return auth.getString(AUTH_KEY);
     }
 
-    private static final String RADIUS_TO = "radius_to";
-    private static final String RADIUS_FROM = "radius_from";
+    public static final String RADIUS_TO = "radius_to";
+    public static final String RADIUS_FROM = "radius_from";
     private static final String SEARCH_ORIGIN = "?searchOrigin=";
     private static final String TOLERANCE_RADIUS = "ToleranceRadius";
     private static final String SEARCH_DESTINATION = "&searchDestination=";
     private static final String ONLY_DESTINATION = "?searchDestination=";
-    private static final String RESULTS = "results";
-    private static final String REOCCUR = "Reoccur";
     private static final String STARTDATE = "Startdate";
-    private static final String LATITUDE = "Latitude";
     private static final String LONGITUDE = "Longitude";
+    private static final String LATITUDE = "Latitude";
+    private static final String RESULTS = "results";
+    public static final String REOCCUR = "Reoccur";
 
     @Override
     public long search(Ride query) throws Exception {
@@ -194,10 +194,14 @@ public class FahrgemeinschaftConnector extends Connector {
     private static final String TRIP_ID_WITH_SMALL_t = "tripID"; //wtf!
     private static final String TRIPTYPE = "Triptype";
 
-    private static final String EMAIL = "Email";
-    private static final String MOBILE = "Mobile";
-    private static final String LANDLINE = "Landline";
-    private static final String PLATE = "NumberPlate";
+    public static final String BAHN = "Bahn";
+    public static final String PRICE = "Price";
+    public static final String EMAIL = "Email";
+    public static final String MOBILE = "Mobile";
+    public static final String COMMENT = "Comment";
+    public static final String PRIVACY = "Privacy";
+    public static final String LANDLINE = "Landline";
+    public static final String PLATE = "NumberPlate";
     private static final String CONTACTMAIL = "Contactmail";
     private static final String CONTACTMOBILE = "Contactmobile";
     private static final String CONTACTLANDLINE = "Contactlandline";
@@ -206,12 +210,8 @@ public class FahrgemeinschaftConnector extends Connector {
     private static final String DESTINATION = "Destination";
     private static final String ORIGIN = "Origin";
     private static final String ROUTINGS = "Routings";
-    private static final String PRICE = "Price";
-    private static final String BAHN = "Bahn";
     private static final String RELEVANCE = "Relevance";
-    private static final String COMMENT = "Comment";
     private static final String DESCRIPTION = "Description";
-    private static final String PRIVACY = "Privacy";
     private static final String PLACES = "Places";
     private static final String DE = "DE";
     private static final String GEO = "geo";
@@ -222,6 +222,7 @@ public class FahrgemeinschaftConnector extends Connector {
     private static final String ROUTING_INDEX = "RoutingIndex";
     
 
+    @SuppressWarnings("deprecation")
     private Ride parseRide(JSONObject json)  throws JSONException {
 
         Ride ride = new Ride().type(Ride.OFFER).mode(Mode.CAR);
@@ -270,9 +271,21 @@ public class FahrgemeinschaftConnector extends Connector {
             ride.type(TYPE_OFFER_REOCCURING);
         }
         if (isMyride) {
-            ride.dep(parseDate(json.getString(STARTDATE) + time));
+            if (time.equals(EMPTY)) {
+                Date date = parseDate(json.getString(STARTDATE) + NOTIME);
+                date.setSeconds(59);
+                ride.dep(date);
+            } else {
+                ride.dep(parseDate(json.getString(STARTDATE) + time));
+            }
         } else {
-            ride.dep(parseDate(startDate + time));
+            if (time.equals(EMPTY)) {
+                Date date = parseDate(startDate + NOTIME);
+                date.setSeconds(59);
+                ride.dep(date);
+            } else {
+                ride.dep(parseDate(startDate + time));
+            }
         }
 
         JSONArray routings = json.getJSONArray(ROUTINGS);
@@ -312,13 +325,13 @@ public class FahrgemeinschaftConnector extends Connector {
 
     private String parseTime(JSONObject json) throws JSONException {
 //              new Date(Long.parseLong(ride.getString("Enterdate"));
-        String time = NOTIME;
+        String time = EMPTY;
         if (!json.isNull(STARTTIME)) {
             time = json.getString(STARTTIME);
             if (time.length() == 3)
                 time = ZERO + time;
             if (time.length() != 4)
-                time = NOTIME;
+                time = EMPTY;
         }
         return time;
     }
